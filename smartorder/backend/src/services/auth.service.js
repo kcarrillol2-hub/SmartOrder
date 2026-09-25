@@ -26,6 +26,15 @@ export async function register({ nombre, correo, password }) {
 
 export async function login({ correo, password }) {
   const user = await prisma.usuario.findUnique({ where: { correo } });
+
+  console.log('LOGIN DEBUG:', {
+    correo,
+    usuarioExiste: !!user,
+    activo: user?.activo,
+    passwordRecibido: !!password,
+    hashExiste: !!user?.password
+  });
+  
   if (!user || !user.activo || !(await bcrypt.compare(password, user.password))) {
     const error = new Error('Credenciales inválidas');
     error.status = 401;
