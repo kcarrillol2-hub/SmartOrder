@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
   useEffect(() => { refresh(); }, []);
 
   async function login(correo, password) {
-    const { data } = await api.post('/auth/login', { correo, password });
+    const { data } = await api.post('api/auth/login', { correo, password });
     localStorage.setItem('smartorder_token', data.token);
     setUser(data.user);
     return data.user;
