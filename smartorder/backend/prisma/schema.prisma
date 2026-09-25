@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENTE
+  VENDEDOR
+  ADMINISTRADOR
+}
+
+enum OrderStatus {
+  PENDIENTE
+  CONFIRMADO
+  EN_PREPARACION
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+  RECHAZADO
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  correo    String   @unique
+  password  String
+  rol       Role     @default(CLIENTE)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pedidos   Pedido[]
+}
+
+model Categoria {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique
+  descripcion String?
+  activo      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  productos   Producto[]
+}
+
+model Producto {
+  id          Int              @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Decimal          @db.Decimal(10, 2)
+  inventario  Int              @default(0)
+  activo      Boolean          @default(true)
+  categoriaId Int
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  categoria   Categoria        @relation(fields: [categoriaId], references: [id])
+  detalles    DetallePedido[]
+}
+
+model Pedido {
+  id                  Int             @id @default(autoincrement())
+  numeroPedido        String          @unique
+  usuarioId           Int
+  subtotal            Decimal         @db.Decimal(10, 2)
+  porcentajeDescuento Decimal         @db.Decimal(5, 2)
+  descuento           Decimal         @db.Decimal(10, 2)
+  total               Decimal         @db.Decimal(10, 2)
+  estado              OrderStatus     @default(PENDIENTE)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  usuario             Usuario         @relation(fields: [usuarioId], references: [id])
+  detalles            DetallePedido[]
+}
+
+model DetallePedido {
+  id            Int      @id @default(autoincrement())
+  pedidoId      Int
+  productoId    Int
+  cantidad      Int
+  precioUnitario Decimal  @db.Decimal(10, 2)
+  subtotal      Decimal  @db.Decimal(10, 2)
+  pedido        Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  producto      Producto @relation(fields: [productoId], references: [id])
+
+  @@unique([pedidoId, productoId])
+}
